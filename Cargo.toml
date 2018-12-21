@@ -1,0 +1,26 @@
+[package]
+name = "dir_update"
+version = "0.1.0"
+authors = ["Douman <douman@gmx.se>"]
+edition = "2018"
+repository = "https://github.com/DoumanAsh/dir_update"
+description = "Simple utility to copy files into directory, only if they are updated"
+license = "Apache-2.0"
+readme = "README.md"
+include = [
+    "**/*.rs",
+    "Cargo.toml",
+    "README.md"
+]
+
+[profile.release]
+lto = true
+opt-level = "z"
+
+[dependencies]
+walkdir = "2"
+
+[dependencies.structopt]
+version = "0.2"
+default-features = false
+features = ["suggestions", "wrap_help"]
