@@ -44,12 +44,8 @@ impl fmt::Display for UpdateError {
     }
 }
 
-fn skip_dir(entry: &walkdir::DirEntry) -> bool {
-    if entry.file_type().is_file() {
-        !entry.file_name().to_str().map(|s| s.starts_with(".")).unwrap_or(false)
-    } else {
-        true
-    }
+fn skip_hidden(entry: &walkdir::DirEntry) -> bool {
+    !entry.file_name().to_str().map(|s| s.starts_with(".")).unwrap_or(false)
 }
 
 ///Describes how to perform update
@@ -84,7 +80,10 @@ pub trait DirUpdate {
     #[doc(hidden)]
     fn filter_error(value: walkdir::Result<walkdir::DirEntry>) -> Option<walkdir::DirEntry> {
         match value {
-            Ok(entry) => Some(entry),
+            Ok(entry) => match entry.file_type().is_dir() {
+                true => None,
+                false => Some(entry),
+            },
             Err(error) => {
                 Self::on_walk_error(error);
                 None
@@ -102,7 +101,7 @@ pub trait DirUpdate {
 
         let mut result = 0;
 
-        for to_entry in WalkDir::new(to).into_iter().filter_entry(skip_dir).filter_map(Self::filter_error) {
+        for to_entry in WalkDir::new(to).into_iter().filter_entry(skip_hidden).filter_map(Self::filter_error) {
             let to_path = to_entry.path();
             let to_short_path = to_path.strip_prefix(to).expect("To strip prefix of file in to directory");
             let from_path = from.join(to_short_path);
